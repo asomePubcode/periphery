@@ -9,7 +9,7 @@ final class AssignOnlyPropertyReferenceEliminator: SourceGraphMutator {
     required init(graph: SourceGraph, configuration: Configuration) {
         self.graph = graph
         self.configuration = configuration
-        self.retainAssignOnlyPropertyTypes = ["AnyCancellable"] + configuration.retainAssignOnlyPropertyTypes
+        self.retainAssignOnlyPropertyTypes = ["AnyCancellable", "Set<AnyCancellable>"] + configuration.retainAssignOnlyPropertyTypes
     }
 
     func mutate() throws {

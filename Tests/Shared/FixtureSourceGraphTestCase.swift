@@ -9,10 +9,12 @@ class FixtureSourceGraphTestCase: SourceGraphTestCase {
 
     func analyze(retainPublic: Bool = false,
                  retainObjcAccessible: Bool = false,
+                 retainObjcAnnotated: Bool = false,
                  testBlock: () throws -> Void
     ) rethrows {
         configuration.retainPublic = retainPublic
         configuration.retainObjcAccessible = retainObjcAccessible
+        configuration.retainObjcAnnotated = retainObjcAnnotated
         configuration.indexExcludeSourceFiles = Self.sourceFiles.subtracting([testFixturePath])
         Self.index()
         try testBlock()

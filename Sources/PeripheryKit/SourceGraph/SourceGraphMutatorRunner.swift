@@ -9,6 +9,7 @@ public final class SourceGraphMutatorRunner {
     private let mutators: [SourceGraphMutator.Type] = [
         // Must come before ExtensionReferenceBuilder.
         AccessibilityCascader.self,
+        ObjCAccessibleRetainer.self,
 
         // Must come before ExtensionReferenceBuilder so that it can detect redundant accessibility on extensions.
         RedundantExplicitPublicAccessibilityMarker.self,
@@ -37,7 +38,6 @@ public final class SourceGraphMutatorRunner {
         AssetReferenceRetainer.self,
         EntryPointAttributeRetainer.self,
         PubliclyAccessibleRetainer.self,
-        ObjCAccessibleRetainer.self,
         XCTestRetainer.self,
         SwiftUIRetainer.self,
         EncodablePropertyRetainer.self,

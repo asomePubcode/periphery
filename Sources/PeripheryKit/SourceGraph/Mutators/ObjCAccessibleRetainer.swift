@@ -11,20 +11,33 @@ final class ObjCAccessibleRetainer: SourceGraphMutator {
     }
 
     func mutate() {
-        guard configuration.retainObjcAccessible else { return }
+        if configuration.retainObjcAccessible {
+            // Most of the retention is performed in SwiftIndexer, this section just retain
+            // explicitly annotated private members.
+            for kind in Declaration.Kind.accessibleKinds {
+                for decl in graph.declarations(ofKind: kind) {
+                    if decl.accessibility.value == .private && (decl.attributes.contains("objc") || decl.attributes.contains("objc.name")) {
+                        retain(decl)
+                    }
+                }
+            }
+        } else if configuration.retainObjcAnnotated {
+            for kind in Declaration.Kind.accessibleKinds {
+                for decl in graph.declarations(ofKind: kind) {
+                    guard decl.attributes.contains("objc") || decl.attributes.contains("objc.name") || decl.attributes.contains("objcMembers") else { continue }
+                    retain(decl)
 
-        Declaration.Kind.accessibleKinds
-            .flatMap {
-                graph.declarations(ofKind: $0)
+                    if decl.attributes.contains("objcMembers") || decl.kind == .extensionClass || decl.kind == .protocol {
+                        decl.declarations.forEach { retain($0) }
+                    }
+                }
             }
-            .filter {
-                $0.attributes.contains("objc") ||
-                    $0.attributes.contains("objc.name") ||
-                    $0.attributes.contains("objcMembers")
-            }
-            .forEach {
-                $0.isObjcAccessible = true
-                graph.markRetained($0)
-            }
+        }
+    }
+
+    // MARK: - Private
+
+    private func retain(_ declaration: Declaration) {
+        graph.markRetained(declaration)
     }
 }
