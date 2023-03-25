@@ -47,7 +47,8 @@ public final class SourceGraphMutatorRunner {
         AssignOnlyPropertyReferenceEliminator.self,
 
         UsedDeclarationMarker.self,
-        RedundantProtocolMarker.self
+        RedundantProtocolMarker.self,
+        UnusedImportMarker.self
     ]
 
     private let graph: SourceGraph

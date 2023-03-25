@@ -1,9 +1,13 @@
 import Foundation
 import SwiftSyntax
 
-final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
-    typealias ImportStatement = (parts: [String], isTestable: Bool)
+public struct ImportStatement {
+    let parts: [String]
+    let isTestable: Bool
+    let isExported: Bool
+}
 
+final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
     var importStatements: [ImportStatement] = []
 
     init(sourceLocationBuilder: SourceLocationBuilder) {}
@@ -11,6 +15,10 @@ final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
     func visit(_ node: ImportDeclSyntax) {
         let parts = node.path.map { $0.name.text }
         let attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self)?.attributeName.trimmedDescription } ?? []
-        importStatements.append((parts, attributes.contains("testable")))
+        let statement = ImportStatement(
+            parts: parts,
+            isTestable: attributes.contains("testable"),
+            isExported: attributes.contains("_exported"))
+        importStatements.append(statement)
     }
 }

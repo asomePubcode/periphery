@@ -20,9 +20,31 @@ public final class SourceGraph {
     private(set) var mainAttributedDeclarations: Set<Declaration> = []
     private(set) var letShorthandContainerDeclarations: Set<Declaration> = []
 
+    private(set) var allReferencesBySourceFile: [SourceFile: Set<Reference>] = [:]
     private var allReferencesByUsr: [String: Set<Reference>] = [:]
     private var allDeclarationsByKind: [Declaration.Kind: Set<Declaration>] = [:]
     private var allExplicitDeclarationsByUsr: [String: Declaration] = [:]
+
+    private(set) var indexedModules: Set<String> = []
+    private var exportedModules: [String: Set<String>] = [:]
+
+    func addIndexedModule(_ module: String) {
+        withLock {
+            _ = indexedModules.insert(module)
+        }
+    }
+
+    func addExportedModule(_ module: String, exportedBy exportingModules: Set<String>) {
+        withLock {
+            exportedModules[module, default: []].formUnion(exportingModules)
+        }
+    }
+
+    func isModule(_ module: String, exportedBy exportingModule: String) -> Bool {
+        withLock {
+            exportedModules[module, default: []].contains(exportingModule)
+        }
+    }
 
     private let lock = UnfairLock()
 
@@ -161,6 +183,7 @@ public final class SourceGraph {
     func addUnsafe(_ reference: Reference) {
         _ = allReferences.insert(reference)
         allReferencesByUsr[reference.usr, default: []].insert(reference)
+        allReferencesBySourceFile[reference.location.file, default: []].insert(reference)
     }
 
     func add(_ reference: Reference, from declaration: Declaration) {
@@ -170,9 +193,9 @@ public final class SourceGraph {
             } else {
                 _ = declaration.references.insert(reference)
             }
-        }
 
-        add(reference)
+            addUnsafe(reference)
+        }
     }
 
     func remove(_ reference: Reference) {
